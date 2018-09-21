@@ -8,7 +8,9 @@ import tensorflow as tf
 import torch
 import torch.utils.data as data
 import os
+import numpy as np
 
+# epoch_size = 50
 epoch_size = 50
 batch_size = 128  #需要8的倍数
 NEED_RESTART_TRAIN = True  #是否不读现有模型，重头开始训练
@@ -17,6 +19,8 @@ modelsaveddict = "/modelSaved"
 modelpkl = "/mySavedModel.pkl"
 TRAIN = "train"
 EVAL = "eval"
+learning_rate = 0.001
+TEST = "test"
 
 def precision(y_true, y_pred):
     # Calculates the precision
@@ -52,7 +56,127 @@ def fmeasure(y_true, y_pred):
     return fbeta_score(y_true, y_pred, beta=1)
 
 
-# def fmeasureByTorch(y_true, y_pred):
+def fmeasureByTorch(y_true, y_pred):
+    y_true = y_true.data.numpy()
+    y_pred = y_pred.data.numpy()
+
+    numerator = y_true * y_pred
+    numerator = 2 * np.sum(numerator, axis=1)
+    denominator = np.sum(y_true, axis=1) + np.sum(y_pred, axis=1)
+    fraction = numerator / denominator
+    fraction_sum = np.sum(fraction) / len(fraction)
+
+    return fraction_sum
+
+
+
+
+def begin_train_new():
+
+    # myModel = model.mtModel()   #移到外边，可在训练前选择是否读取已有模型。
+    criterion = torch.nn.MultiLabelSoftMarginLoss()
+    myOptim = torch.optim.Adam(myModel.parameters(), lr=learning_rate)
+
+    myModel.train()     #模型的训练模式
+    print("begin train ... ")
+
+    for index, (x, y) in enumerate(loaderTrain, 0):
+        print("batch num: "+str(index))
+        x = x.view(-1, 3, 224, 224)    #即使使用Dataset，也需要调整NHWC为NCHW。
+        x = x.type(torch.FloatTensor)   #即使使用Dataset，也需要调整类型为float。
+        y = y.type(torch.FloatTensor)   #即使使用Dataset，也需要调整类型为float。
+
+        if torch.cuda.is_available():
+            x = x.cuda()
+            y = y.cuda()
+
+        myOptim.zero_grad()
+        predict = myModel(x, type=None)
+        # myLoss = criterion(y, predict)
+        myLoss = criterion(predict, y)
+        myLoss.backward()
+        myOptim.step()
+
+
+        print("loss is : "+str(myLoss.data))
+        # print("train fmeasure is: " + str(fmeasureByTorch(y, predict)))
+            #train的过程就不fmeasure评价了，因为fmeasure要求预测值是sigmoid后的，train过程没有。验证时再评价。
+
+    torch.save(myModel, rootdict + modelsaveddict + modelpkl)  # 保存模型(每一个epoch保存一次)
+
+def begin_eval():
+
+
+    # myModel = model.mtModel()   #移到外边，可在训练前选择是否读取已有模型。
+    # criterion = torch.nn.MultiLabelSoftMarginLoss()
+    # myOptim = torch.optim.Adam(myModel.parameters(), lr=0.001)
+
+    myModel.eval()     #模型的验证模式
+    print("begin eval ... ")
+
+    for index, (x, y) in enumerate(loaderEval, 0):
+        print("batch num: "+str(index))
+        x = x.view(-1, 3, 224, 224)    #即使使用Dataset，也需要调整NHWC为NCHW。
+        x = x.type(torch.FloatTensor)   #即使使用Dataset，也需要调整类型为float。
+        y = y.type(torch.FloatTensor)   #即使使用Dataset，也需要调整类型为float。
+
+        if torch.cuda.is_available():
+            x = x.cuda()
+            y = y.cuda()
+
+        # myOptim.zero_grad()
+        predict = myModel(x, type=TEST)
+        # myLoss = criterion(y, predict)
+        # myLoss = criterion(predict, y)
+        # myLoss.backward()
+        # myOptim.step()
+
+        #TODO 引入验证集评判标准
+        # print("loss is : "+str(myLoss.data))
+        print("evla fmeasure is : "+str(fmeasureByTorch(y, predict)))
+
+    # torch.save(myModel, rootdict + modelsaveddict + modelpkl)  # 保存模型
+
+
+if __name__ == '__main__':
+    # y_true = np.array([[1,0,1,1,1,0,1,0,1,0,1,0,1,1,0,0,0,0,1,0,1,0,0,1],
+    #                    [1,1,0,1,1,0,1,0,0,1,1,0,1,1,1,1,1,0,1,0,0,1,0,1]])
+    # y_pred = np.random.rand(2,24)
+    # fmeasureByTorch(y_true, y_pred)
+    isExist = os.path.exists(rootdict+modelsaveddict)
+    if not isExist:
+        os.mkdir(rootdict+modelsaveddict)
+        print("create a 'modelSaved' file ")
+
+    modelExist = os.path.exists(rootdict+modelsaveddict+modelpkl)
+
+    if modelExist and not NEED_RESTART_TRAIN:
+        myModel = torch.load(rootdict+modelsaveddict+modelpkl)   #读取模型
+    else:
+        myModel = model.mtModel()
+
+
+
+    xzyDataTrain = datapy.XzyData(TRAIN)
+    loaderTrain = torch.utils.data.DataLoader(xzyDataTrain, batch_size=batch_size, shuffle=True)
+    xzyDataEval = datapy.XzyData(EVAL)
+    loaderEval = torch.utils.data.DataLoader(xzyDataEval, batch_size=batch_size, shuffle=True)
+
+
+    # begin_train_old()
+    for i in range(epoch_size):
+        print("epoch num: " + str(i))
+
+        begin_train_new()
+        begin_eval()
+
+
+
+
+
+
+
+
 
 
 
@@ -150,104 +274,3 @@ def begin_train_old():
         #
         # for i in range(len(outputsNp)):
         #     print(data.onehot2strings(outputsNp[i]))
-
-
-def begin_train_new():
-
-
-    # myModel = model.mtModel()   #移到外边，可在训练前选择是否读取已有模型。
-    criterion = torch.nn.MultiLabelSoftMarginLoss()
-    myOptim = torch.optim.Adam(myModel.parameters(), lr=0.001)
-
-    myModel.train()     #模型的训练模式
-    print("begin train ... ")
-
-    for index, (x, y) in enumerate(loaderTrain, 0):
-        print("batch num: "+str(index))
-        x = x.view(-1, 3, 224, 224)    #即使使用Dataset，也需要调整NHWC为NCHW。
-        x = x.type(torch.FloatTensor)   #即使使用Dataset，也需要调整类型为float。
-        y = y.type(torch.FloatTensor)   #即使使用Dataset，也需要调整类型为float。
-
-        if torch.cuda.is_available():
-            x = x.cuda()
-            y = y.cuda()
-
-        myOptim.zero_grad()
-        predict = myModel(x)
-        # myLoss = criterion(y, predict)
-        myLoss = criterion(predict, y)
-        myLoss.backward()
-        myOptim.step()
-
-
-        print("loss is : "+str(myLoss.data))
-
-    torch.save(myModel, rootdict + modelsaveddict + modelpkl)  # 保存模型(每一个epoch保存一次)
-
-def begin_eval():
-
-
-    # myModel = model.mtModel()   #移到外边，可在训练前选择是否读取已有模型。
-    # criterion = torch.nn.MultiLabelSoftMarginLoss()
-    # myOptim = torch.optim.Adam(myModel.parameters(), lr=0.001)
-
-    myModel.eval()     #模型的验证模式
-    print("begin eval ... ")
-
-    for index, (x, y) in enumerate(loaderEval, 0):
-        print("batch num: "+str(index))
-        x = x.view(-1, 3, 224, 224)    #即使使用Dataset，也需要调整NHWC为NCHW。
-        x = x.type(torch.FloatTensor)   #即使使用Dataset，也需要调整类型为float。
-        y = y.type(torch.FloatTensor)   #即使使用Dataset，也需要调整类型为float。
-
-        if torch.cuda.is_available():
-            x = x.cuda()
-            y = y.cuda()
-
-        # myOptim.zero_grad()
-        predict = myModel(x)
-        # myLoss = criterion(y, predict)
-        # myLoss = criterion(predict, y)
-        # myLoss.backward()
-        # myOptim.step()
-
-        #TODO 引入验证集评判标准
-
-        # print("loss is : "+str(myLoss.data))
-
-    # torch.save(myModel, rootdict + modelsaveddict + modelpkl)  # 保存模型
-
-
-if __name__ == '__main__':
-
-    isExist = os.path.exists(rootdict+modelsaveddict)
-    if not isExist:
-        os.mkdir(rootdict+modelsaveddict)
-        print("create a 'modelSaved' file ")
-
-    modelExist = os.path.exists(rootdict+modelsaveddict+modelpkl)
-
-    if modelExist and not NEED_RESTART_TRAIN:
-        myModel = torch.load(rootdict+modelsaveddict+modelpkl)   #读取模型
-    else:
-        myModel = model.mtModel()
-
-
-
-    xzyDataTrain = datapy.XzyData(TRAIN)
-    loaderTrain = torch.utils.data.DataLoader(xzyDataTrain, batch_size=batch_size, shuffle=True)
-    xzyDataEval = datapy.XzyData(EVAL)
-    loaderEval = torch.utils.data.DataLoader(xzyDataEval, batch_size=batch_size, shuffle=True)
-
-
-    # begin_train_old()
-    for i in range(epoch_size):
-        print("epoch num: " + str(i))
-
-        begin_train_new()
-        begin_eval()
-
-
-
-
-

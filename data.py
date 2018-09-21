@@ -19,7 +19,7 @@ xnpy = "/xSaved.npy"
 ynpy = "/ySaved.npy"
 testnpy = "/testDataSaved.npy"
 bacth_size = 100
-TRAIN_LOAD_IMG_NUM = 500
+TRAIN_LOAD_IMG_NUM = 800
 NEED_RENEW_DATA = True  #是否要重头开始读取图片文件
 TRAIN = "train"
 EVAL = "eval"
@@ -219,8 +219,8 @@ def loadTrainPic():
 
 
     x = imageDatas
-    print("test x : ", x.shape)
-    print("test y : ", y.shape)
+    print("look x : ", x.shape)
+    print("look y : ", y.shape)
 
     isExsit = os.path.exists(rootdict+datasaveddict)
     if not isExsit:
