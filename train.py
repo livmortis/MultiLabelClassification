@@ -89,6 +89,7 @@ def begin_train_new():
         if torch.cuda.is_available():
             x = x.cuda()
             y = y.cuda()
+            myModel.cuda()
 
         myOptim.zero_grad()
         predict = myModel(x, type=None)
@@ -123,6 +124,7 @@ def begin_eval():
         if torch.cuda.is_available():
             x = x.cuda()
             y = y.cuda()
+            myModel.cuda()
 
         # myOptim.zero_grad()
         predict = myModel(x, type=TEST)
