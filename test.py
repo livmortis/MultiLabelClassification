@@ -37,14 +37,16 @@ def predict_with_model(mymodel):
     global testList
     global predicts
 
-    if torch.cuda.is_available():
-        mymodel.cuda()
+
     mymodel.eval()
     testList = torch.from_numpy(testList)
     testList = testList.view(-1, 3, 224, 224)
     testList = testList.type(torch.FloatTensor)
     for sample in testList:
         sample = sample.unsqueeze(dim=0)
+        if torch.cuda.is_available():
+            mymodel.cuda()
+            sample.cuda()
         # torch.unsqueeze(sample,dim=1)
         # print("the one sample shape before train is: " + str(sample.shape))
         predict = mymodel(sample, type=TEST)
