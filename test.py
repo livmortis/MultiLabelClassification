@@ -46,7 +46,7 @@ def predict_with_model(mymodel):
         sample = sample.unsqueeze(dim=0)
         if torch.cuda.is_available():
             mymodel.cuda()
-            sample.cuda()
+            sample = sample.cuda()
         # torch.unsqueeze(sample,dim=1)
         # print("the one sample shape before train is: " + str(sample.shape))
         predict = mymodel(sample, type=TEST)
