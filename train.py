@@ -58,8 +58,8 @@ def fmeasure(y_true, y_pred):
 
 def fmeasureByTorch(y_true, y_pred):
     if torch.cuda.is_available():
-        y_true = y_true.cpu.data.numpy()
-        y_pred = y_pred.cpu.data.numpy()
+        y_true = y_true.data.cpu().numpy()
+        y_pred = y_pred.data.cpu().numpy()
     else:
         y_true = y_true.data.numpy()
         y_pred = y_pred.data.numpy()
