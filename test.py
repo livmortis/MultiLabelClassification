@@ -41,7 +41,7 @@ def predict_with_model(mymodel):
     mymodel.eval()
     testList = torch.from_numpy(testList)
     testList = testList.view(-1, 3, 224, 224)
-    testList = testList.type(torch.FloatTensor)
+    testList = testList.type(torch.FloatTensor) #一定要转换浮点数。
     for sample in testList:
         sample = sample.unsqueeze(dim=0)
         if torch.cuda.is_available():
@@ -50,12 +50,15 @@ def predict_with_model(mymodel):
         # torch.unsqueeze(sample,dim=1)
         # print("the one sample shape before train is: " + str(sample.shape))
         predict = mymodel(sample, type=TEST)
+        print("this test prediction: "+ str(predict))
+
         # print("刚出炉的predict到底是什么shape：" + str(predict.shape))
 
 
         # 预测值转换为文字标签
         # predict = predict.data.numpy()
         preLabelLabel = datapy.sigmoid2strings(predict)
+        print("this test prediction after to string: "+ str(preLabelLabel))
 
         predicts.append(preLabelLabel)
         # print("test data prediction is: "+str(predict))

@@ -102,7 +102,7 @@ def begin_train_new():
         myLoss.backward()
         myOptim.step()
 
-
+        # print("train prediction is： "+str(datapy.sigmoid2strings(predict)))   #不能这样看，第一没有经过sigmoid，第二sigmoid2strings()方法输入的是一维向量
         print("loss is : "+str(myLoss.data))
         # print("train fmeasure is: " + str(fmeasureByTorch(y, predict)))
             #train的过程就不fmeasure评价了，因为fmeasure要求预测值是sigmoid后的，train过程没有。验证时再评价。

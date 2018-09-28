@@ -7,10 +7,13 @@ EVAL = "eval"
 TEST = "test"
 class mtModel(nn.Module):
     def forward(self, input, type):
+        input = input/255.0
 
         x = self.conv1(input)
         # print("9999 shape after conv1", x[:3])
         x = self.bn1(x)
+        # print("9999 shape after bn1", x[:3])
+
         x = self.relu(x)
 
         x = self.conv2(x)

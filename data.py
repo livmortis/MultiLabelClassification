@@ -12,14 +12,15 @@ from tqdm import tqdm
 # rootdict = "/Users/xzy/Documents/coder/ML/game/tinymindMultitag/MutitagData"
 rootdict = "../MutitagData"
 tainDataDict = "/train"
-testDataDict = "/valid"
+# testDataDict = "/valid"
+testDataDict = "/finaltest"     #决赛，更改了测试集
 datasaveddict = "/dataSaved"
 testDatasaveddict = "/testdataSaved"
 xnpy = "/xSaved.npy"
 ynpy = "/ySaved.npy"
 testnpy = "/testDataSaved.npy"
 bacth_size = 100
-TRAIN_LOAD_IMG_NUM = 800
+TRAIN_LOAD_IMG_NUM = 1000
 NEED_RENEW_DATA = True  #是否要重头开始读取图片文件
 TRAIN = "train"
 EVAL = "eval"
@@ -121,7 +122,7 @@ def sigmoid2strings(sigmoidPre):
     if(len(txtdic) != sigmoidsLen):
         return
     for i in range(sigmoidsLen):
-        if sigmoidPre[0][i] > 0.5:                   #换更高级方法
+        if sigmoidPre[0][i] > 0.5:
             prectLabels.append(txtdic[i])
     return prectLabels
 
