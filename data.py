@@ -13,7 +13,7 @@ from tqdm import tqdm
 rootdict = "../MutitagData"
 tainDataDict = "/train"
 # testDataDict = "/valid"
-testDataDict = "/finaltest"     #决赛，更改了测试集
+testDataDict = "/test"     #决赛，更改了测试集
 datasaveddict = "/dataSaved"
 testDatasaveddict = "/testdataSaved"
 xnpy = "/xSaved.npy"
