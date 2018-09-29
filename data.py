@@ -122,7 +122,7 @@ def sigmoid2strings(sigmoidPre):
     if(len(txtdic) != sigmoidsLen):
         return
     for i in range(sigmoidsLen):
-        if sigmoidPre[0][i] > 0.5:
+        if sigmoidPre[0][i] > 0.1:
             prectLabels.append(txtdic[i])
     return prectLabels
 
@@ -163,7 +163,7 @@ def checkNpz():
 def loadTestPic():
     print("begin read test data")
     testPicList = os.listdir(rootdict + testDataDict + "/")
-    # testPicList = testPicList[:TEST_LOAD_IMG_NUM] # 控制载入的测试图片数量
+    testPicList = testPicList[:TEST_LOAD_IMG_NUM] # 控制载入的测试图片数量
     testImages = np.zeros([len(testPicList), 224, 224, 3])
     i = 0
     for testPic in tqdm(testPicList):
