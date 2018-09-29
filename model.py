@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import data
-from tensorboardX import SummaryWriter
+# from tensorboardX import SummaryWriter
 TRAIN = "train"
 EVAL = "eval"
 TEST = "test"
@@ -97,6 +97,6 @@ class mtModel(nn.Module):
 
 
 
-def drawGraph():
-    with SummaryWriter(comment='xzy') as sw:
-        sw.add_graph(mtModel)
+# def drawGraph():
+#     with SummaryWriter(comment='xzy') as sw:
+#         sw.add_graph(mtModel)
