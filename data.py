@@ -20,10 +20,11 @@ xnpy = "/xSaved.npy"
 ynpy = "/ySaved.npy"
 testnpy = "/testDataSaved.npy"
 bacth_size = 100
-TRAIN_LOAD_IMG_NUM = 1000
 NEED_RENEW_DATA = True  #是否要重头开始读取图片文件
 TRAIN = "train"
 EVAL = "eval"
+
+TRAIN_LOAD_IMG_NUM = 1000
 TEST_LOAD_IMG_NUM = 50
 
 # def main ():

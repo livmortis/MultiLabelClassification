@@ -79,7 +79,6 @@ def begin_train_new():
 
     # myModel = model.mtModel()   #移到外边，可在训练前选择是否读取已有模型。
     criterion = torch.nn.MultiLabelSoftMarginLoss()
-    myOptim = torch.optim.Adam(myModel.parameters(), lr=learning_rate)
 
     myModel.train()     #模型的训练模式
     print("begin train ... ")
@@ -106,6 +105,8 @@ def begin_train_new():
         print("loss is : "+str(myLoss.data))
         # print("train fmeasure is: " + str(fmeasureByTorch(y, predict)))
             #train的过程就不fmeasure评价了，因为fmeasure要求预测值是sigmoid后的，train过程没有。验证时再评价。
+
+
 
     torch.save(myModel, rootdict + modelsaveddict + modelpkl)  # 保存模型(每一个epoch保存一次)
 
@@ -141,7 +142,7 @@ def begin_eval():
         # print("loss is : "+str(myLoss.data))
         print("evla fmeasure is : "+str(fmeasureByTorch(y, predict)))
 
-    # torch.save(myModel, rootdict + modelsaveddict + modelpkl)  # 保存模型
+    mySchedule.step(fmeasureByTorch(y,predict)) #根据fmeasure的值增长程度来判断是否改变学习率。
 
 
 if __name__ == '__main__':
@@ -169,9 +170,17 @@ if __name__ == '__main__':
     loaderEval = torch.utils.data.DataLoader(xzyDataEval, batch_size=batch_size, shuffle=True)
 
 
+    # 优化器
+    myOptim = torch.optim.Adam(myModel.parameters(), lr=learning_rate)
+    mySchedule = torch.optim.lr_scheduler.ReduceLROnPlateau(myOptim, mode='max',
+                                                            factor=0.5, patience=5, verbose=True)
+    # 参数：factor=0.5,每次lr缩小0.5。 patience=5，5次fmeasure不增长就改lr。 verbose=true，打印每个lr值。 mode=‘max’，判断lr是否增长。
+
+
     # begin_train_old()
     for i in range(epoch_size):
         print("epoch num: " + str(i))
+
 
         begin_train_new()
         begin_eval()
