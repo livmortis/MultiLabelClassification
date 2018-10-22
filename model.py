@@ -2,12 +2,17 @@ import torch
 import torch.nn as nn
 import data
 # from tensorboardX import SummaryWriter
+import torchvision.models as tvModels
+
 TRAIN = "train"
 EVAL = "eval"
 TEST = "test"
+LABEL_NUMS = 6941
+# NormalizationNum = 255.0
+NormalizationNum = 300.0
 class mtModel(nn.Module):
     def forward(self, input, type):
-        input = input/255.0
+        input = input/NormalizationNum
 
         x = self.conv1(input)
         # print("9999 shape after conv1", x[:3])
@@ -47,6 +52,9 @@ class mtModel(nn.Module):
         x = self.bn6(x)
         x = self.relu(x)
 
+
+        # 如果要插入预训练模型，插到这里。
+
         x = self.averagepool(x)
 
         x = self.dropout(x)
@@ -54,7 +62,7 @@ class mtModel(nn.Module):
         # print("9999 shape before linear", x[:3])
         #forward中进行平铺,两种写法等价
         # x = x.view(x.size(0), -1)
-        x = x.view(x.size(0), 7*7*128)
+        x = x.view(x.size(0), 7*7*128)        #  这里暗含了已经把图片大小写死了为224，否则不能确定是7。
 
         x = self.linear1(x)
         # print("model - linear输出： "+str(x[:3]))
@@ -72,7 +80,7 @@ class mtModel(nn.Module):
         super(mtModel,self).__init__()
         self.maxpool = nn.MaxPool2d([2, 2], stride=None, padding=0)
         self.relu = nn.ReLU()
-
+                                                                    #输入(224,224)
         self.conv1 = nn.Conv2d(3, 16, (3, 3), stride=2, padding=1)  #输出(112,112)
         self.bn1 = nn.BatchNorm2d(16)
         self.conv2 = nn.Conv2d(16, 16, (3, 3), stride=1, padding=1)  #输出(112,112)
@@ -91,7 +99,7 @@ class mtModel(nn.Module):
 
         #这里在forward里进行平铺
 
-        self.linear1 = nn.Linear(7*7*128, 6941)
+        self.linear1 = nn.Linear(7*7*128, LABEL_NUMS)       #  这里暗含了已经把图片大小写死了为224，否则不能确定是7。
 
         self.sigmoid = nn.Sigmoid()
 
@@ -100,3 +108,84 @@ class mtModel(nn.Module):
 # def drawGraph():
 #     with SummaryWriter(comment='xzy') as sw:
 #         sw.add_graph(mtModel)
+
+
+
+def loadPretrainModel():
+    # res18 = tvModels.resnet18(pretrained=True)
+    # res34 = tvModels.resnet34(pretrained=True)
+    # res50 = tvModels.resnet50(pretrained=True)
+    # res152 = tvModels.resnet152(pretrained=True)
+    # print('res18 is : '+ str(res18))
+    # print('res34 is : '+ str(res34))
+    # print('res50 is : '+ str(res50))
+    # print('res152 is : '+ str(res152))
+    inceptionV3 = tvModels.inception_v3(pretrained=True)
+    # print('inceptionV3 is : '+ str(inceptionV3))
+
+    for param in inceptionV3.parameters():
+        param.requires_grad = False
+
+    inceptionV3.fc = nn.Linear(2048, LABEL_NUMS)   #简单全连接层
+    # inceptionV3.fc = nn.Sequential(                 #复杂全连接层
+    #     nn.Dropout(0.3),
+    #     nn.Linear(2048, 2048),
+    #     nn.ReLU(),
+    #     nn.Dropout(0.3),
+    #     nn.Linear(2048, LABEL_NUMS),
+    # )
+
+    return inceptionV3
+
+
+
+'''
+    ##########inceptionV3的倒数两层：############
+    
+  (Mixed_7c): InceptionE(
+    (branch1x1): BasicConv2d(
+      (conv): Conv2d(2048, 320, kernel_size=(1, 1), stride=(1, 1), bias=False)
+      (bn): BatchNorm2d(320, eps=0.001, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (branch3x3_1): BasicConv2d(
+      (conv): Conv2d(2048, 384, kernel_size=(1, 1), stride=(1, 1), bias=False)
+      (bn): BatchNorm2d(384, eps=0.001, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (branch3x3_2a): BasicConv2d(
+      (conv): Conv2d(384, 384, kernel_size=(1, 3), stride=(1, 1), padding=(0, 1), bias=False)
+      (bn): BatchNorm2d(384, eps=0.001, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (branch3x3_2b): BasicConv2d(
+      (conv): Conv2d(384, 384, kernel_size=(3, 1), stride=(1, 1), padding=(1, 0), bias=False)
+      (bn): BatchNorm2d(384, eps=0.001, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (branch3x3dbl_1): BasicConv2d(
+      (conv): Conv2d(2048, 448, kernel_size=(1, 1), stride=(1, 1), bias=False)
+      (bn): BatchNorm2d(448, eps=0.001, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (branch3x3dbl_2): BasicConv2d(
+      (conv): Conv2d(448, 384, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn): BatchNorm2d(384, eps=0.001, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (branch3x3dbl_3a): BasicConv2d(
+      (conv): Conv2d(384, 384, kernel_size=(1, 3), stride=(1, 1), padding=(0, 1), bias=False)
+      (bn): BatchNorm2d(384, eps=0.001, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (branch3x3dbl_3b): BasicConv2d(
+      (conv): Conv2d(384, 384, kernel_size=(3, 1), stride=(1, 1), padding=(1, 0), bias=False)
+      (bn): BatchNorm2d(384, eps=0.001, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (branch_pool): BasicConv2d(
+      (conv): Conv2d(2048, 192, kernel_size=(1, 1), stride=(1, 1), bias=False)
+      (bn): BatchNorm2d(192, eps=0.001, momentum=0.1, affine=True, track_running_stats=True)
+    )
+  )
+  (fc): Linear(in_features=2048, out_features=1000, bias=True)
+  
+'''
+
+
+
+
+
+

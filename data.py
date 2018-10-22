@@ -20,12 +20,16 @@ xnpy = "/xSaved.npy"
 ynpy = "/ySaved.npy"
 testnpy = "/testDataSaved.npy"
 bacth_size = 100
-NEED_RENEW_DATA = True  #是否要重头开始读取图片文件
+NEED_RENEW_DATA = False  #是否要重头开始读取图片文件
 TRAIN = "train"
 EVAL = "eval"
 
 TRAIN_LOAD_IMG_NUM = 1000
 TEST_LOAD_IMG_NUM = 50
+
+# IMAGE_SIZE = 224
+# IMAGE_SIZE = 500
+IMAGE_SIZE = 299
 
 # def main ():
     # checkCsv()
@@ -158,6 +162,8 @@ def checkNpz():
     # print("npz's tag is: "+str(npzFile.files))
     # print("npz file is: "+str(npzFile['tag_train']))
     # print("npz file shape is: "+str(npzFile['tag_train'].shape))
+    # print("npz numpy : "+str(npzFile['tag_train'][:50]))
+
     return npzFile["tag_train"]
 
 
@@ -165,13 +171,13 @@ def loadTestPic():
     print("begin read test data")
     testPicList = os.listdir(rootdict + testDataDict + "/")
     # testPicList = testPicList[:TEST_LOAD_IMG_NUM] # 控制载入的测试图片数量
-    testImages = np.zeros([len(testPicList), 224, 224, 3])
+    testImages = np.zeros([len(testPicList), IMAGE_SIZE, IMAGE_SIZE, 3])
     i = 0
     for testPic in tqdm(testPicList):
         testImage = Image.open(rootdict + testDataDict + "/" + testPic)
         if(testImage.mode != "RGB"):
             testImage = testImage.convert("RGB")    #色彩空间
-        testImage = testImage.resize((224, 224))    #尺寸
+        testImage = testImage.resize((IMAGE_SIZE, IMAGE_SIZE))    #尺寸
         testImage = np.asarray(testImage)           #变数组1
     # testImages.append(testImage)
     # testImages = np.array(testImages)  #变数组2。这样变的数组，其每个元素（图片）没有第四维，没有batch。而搭建的
@@ -189,11 +195,11 @@ def loadTestPic():
 
 def loadTrainPic():
     imagePaths = checkCsv()
-    # imagePaths = imagePaths[:TRAIN_LOAD_IMG_NUM]   # 控制载入的训练图片数量
+    imagePaths = imagePaths[:TRAIN_LOAD_IMG_NUM]   # 控制载入的训练图片数量
     y = checkNpz()
-    # y = y[:TRAIN_LOAD_IMG_NUM]                     # 控制载入的训练图片数量
+    y = y[:TRAIN_LOAD_IMG_NUM]                     # 控制载入的训练图片数量
 
-    imageDatas = np.zeros((len(imagePaths), 224, 224, 3), dtype=np.uint8)
+    imageDatas = np.zeros((len(imagePaths), IMAGE_SIZE, IMAGE_SIZE, 3), dtype=np.uint8)
 
 
     i = 0
@@ -204,7 +210,7 @@ def loadTrainPic():
 
         if(image.mode != "RGB"):
             image = image.convert("RGB")    #色彩空间
-        image = image.resize((224,224))     #尺寸
+        image = image.resize((IMAGE_SIZE,IMAGE_SIZE))     #尺寸
         image = np.asarray(image)           #变数组1
         imageDatas[i,:,:,:] = image         #加四维(没加成功)
         i+=1
@@ -237,7 +243,7 @@ def loadTrainPic():
     return x, y
 
 
-def processDataManual():
+def processDataManual():    #with out 'data.Dataset'
     x,y = loadTrainPic()
 
     x_train,x_val,y_train,y_val = tts(x,y[:bacth_size],train_size=0.8)
@@ -261,8 +267,8 @@ def processDataManual():
     # pytorch 0.4.0 已经不需要在转为Variable变量才能输入网络
 
 
-    x_train = x_train.view(80, 3, 224, 224)
-    x_val = x_val.view(20, 3, 224, 224)
+    x_train = x_train.view(80, 3, IMAGE_SIZE, IMAGE_SIZE)
+    x_val = x_val.view(20, 3, IMAGE_SIZE, IMAGE_SIZE)
     # pytorch卷积网络要求通道数在宽高之前,而图片本身通道数在宽高之后。
 
     x_train = x_train.type(torch.FloatTensor)
@@ -303,5 +309,5 @@ class XzyData(data.Dataset):
 
 
 
-# if(__name__ == '__main__'):
-    # main()
+if(__name__ == '__main__'):
+    checkNpz()

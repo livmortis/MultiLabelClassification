@@ -9,6 +9,7 @@ import torch
 import torch.utils.data as data
 import os
 import numpy as np
+from torch.autograd.variable import Variable
 
 # epoch_size = 50
 epoch_size = 50
@@ -21,6 +22,11 @@ TRAIN = "train"
 EVAL = "eval"
 learning_rate = 0.001
 TEST = "test"
+
+# IMAGE_SIZE = 224
+# IMAGE_SIZE = 500
+IMAGE_SIZE = 299
+demo = False
 
 def precision(y_true, y_pred):
     # Calculates the precision
@@ -74,6 +80,47 @@ def fmeasureByTorch(y_true, y_pred):
 
 
 
+def begin_pretrain():
+    inceptionV3Model = model.loadPretrainModel()
+    myPreTrainOptim = torch.optim.Adam(inceptionV3Model.fc.parameters(), lr=learning_rate)  #只训练最后一层
+
+    criterion = torch.nn.MultiLabelSoftMarginLoss()
+    inceptionV3Model.train()     #模型的训练模式
+    for index, (x, y) in enumerate(loaderTrain, 0):
+        print("batch num: "+str(index))
+        x = x.view(-1, 3, IMAGE_SIZE, IMAGE_SIZE)    #即使使用Dataset，也需要调整NHWC为NCHW。
+        # x = x.view(-1,  IMAGE_SIZE, IMAGE_SIZE, 3)    # 试试NHWC
+        x = x.type(torch.FloatTensor)   #即使使用Dataset，也需要调整类型为float。
+        y = y.type(torch.FloatTensor)   #即使使用Dataset，也需要调整类型为float。
+
+        if torch.cuda.is_available():
+            x = x.cuda()
+            y = y.cuda()
+            inceptionV3Model.cuda()
+
+        myPreTrainOptim.zero_grad()
+        # predict = myModel(x, type=None)
+        # predict = model.loadPretrainModel(x)     # 进行迁移学习————模型预训练
+        predict = inceptionV3Model(x)                 # 进行迁移学习————模型预训练
+
+        # myLoss = criterion(predict, y)
+        # print(str(predict))
+        if isinstance(predict, tuple):
+            predict = predict[0]
+            # print("y's shape is "+str(y.shape))
+            # print("predict's shape is "+str(predict.shape))
+            #
+            # myLoss = sum((criterion(o, y) for o in predict))
+
+        myLoss = criterion(predict, y)
+
+        myLoss.backward()
+        myPreTrainOptim.step()
+
+        print("loss is : "+str(myLoss.data))
+
+
+
 
 def begin_train_new():
 
@@ -85,7 +132,9 @@ def begin_train_new():
 
     for index, (x, y) in enumerate(loaderTrain, 0):
         print("batch num: "+str(index))
-        x = x.view(-1, 3, 224, 224)    #即使使用Dataset，也需要调整NHWC为NCHW。
+        x = x.view(-1, 3, IMAGE_SIZE, IMAGE_SIZE)    #即使使用Dataset，也需要调整NHWC为NCHW。
+        # x = x.view(-1,  IMAGE_SIZE, IMAGE_SIZE, 3)    # 试试NHWC
+
         x = x.type(torch.FloatTensor)   #即使使用Dataset，也需要调整类型为float。
         y = y.type(torch.FloatTensor)   #即使使用Dataset，也需要调整类型为float。
 
@@ -122,7 +171,9 @@ def begin_eval():
 
     for index, (x, y) in enumerate(loaderEval, 0):
         print("batch num: "+str(index))
-        x = x.view(-1, 3, 224, 224)    #即使使用Dataset，也需要调整NHWC为NCHW。
+        x = x.view(-1, 3, IMAGE_SIZE, IMAGE_SIZE)    #即使使用Dataset，也需要调整NHWC为NCHW。
+        # x = x.view(-1,  IMAGE_SIZE, IMAGE_SIZE, 3)    # 试试NHWC
+
         x = x.type(torch.FloatTensor)   #即使使用Dataset，也需要调整类型为float。
         y = y.type(torch.FloatTensor)   #即使使用Dataset，也需要调整类型为float。
 
@@ -145,7 +196,19 @@ def begin_eval():
     mySchedule.step(fmeasureByTorch(y,predict)) #根据fmeasure的值增长程度来判断是否改变学习率。
 
 
-if __name__ == '__main__':
+
+
+
+
+
+
+
+
+if __name__ == '__main__' and not demo:
+
+
+
+
     # y_true = np.array([[1,0,1,1,1,0,1,0,1,0,1,0,1,1,0,0,0,0,1,0,1,0,0,1],
     #                    [1,1,0,1,1,0,1,0,0,1,1,0,1,1,1,1,1,0,1,0,0,1,0,1]])
     # y_pred = np.random.rand(2,24)
@@ -181,13 +244,13 @@ if __name__ == '__main__':
     for i in range(epoch_size):
         print("epoch num: " + str(i))
 
-
-        begin_train_new()
+        # begin_train_new()
+        begin_pretrain()
         begin_eval()
 
 
-
-
+elif demo:
+    begin_pretrain()
 
 
 
