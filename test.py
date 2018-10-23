@@ -61,7 +61,11 @@ def predict_with_model(mymodel):
         # print("the one sample shape before train is: " + str(sample.shape))
         # predict = mymodel(sample, type=TEST)
         predict = mymodel(pre)
-        predict = torch.nn.Sigmoid(predict)
+        predicts = []
+        for pre in predict:
+            pre = torch.nn.Sigmoid(pre)
+            predicts.append(pre)
+        predicts = np.array(predicts)
         print("this test prediction: "+ str(predict))
 
         # print("刚出炉的predict到底是什么shape：" + str(predict.shape))
