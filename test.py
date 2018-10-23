@@ -5,7 +5,7 @@ import os
 import numpy as np
 import pandas as pd
 import torch.utils.data as data
-
+import torch.nn.functional as F
 rootdict = "../MutitagData"
 resultdict = "/submit"
 resultCsv = "/result.csv"
@@ -60,7 +60,7 @@ def predict_with_model(mymodel):
         predict = mymodel(pre)
         predicts = []
         for pre in predict:
-            pre = torch.nn.Sigmoid(pre)
+            pre = F.sigmoid(pre)
             predicts.append(pre)
         predicts = np.array(predicts)
         print("this test prediction: "+ str(predict))
