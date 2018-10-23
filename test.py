@@ -4,6 +4,7 @@ import data as datapy
 import os
 import numpy as np
 import pandas as pd
+import torch.utils.data as data
 
 rootdict = "../MutitagData"
 resultdict = "/submit"
@@ -14,6 +15,7 @@ testDatasaveddict = "/testdataSaved"
 testnpy = "/testDataSaved.npy"
 TEST = "test"
 IMAGE_SIZE = 299
+batch_size = 128  #需要8的倍数
 
 NEED_READ_ORIGION_PICTURE = True    #是否需要从头读取图片文件
 testList = []
@@ -22,8 +24,12 @@ predicts = []
 
 def load_data():
     global testList
-    global testPicNameList
-    testList, testPicNameList = datapy.loadTestPic()
+
+    global testLoader
+    # testList, testPicNameList = datapy.loadTestPic()    #改为batch
+    testData = datapy.XzyTestData()
+    testLoader = data.DataLoader(testData, batch_size=batch_size, shuffle=False)
+
 
     load_model()
 
@@ -39,31 +45,34 @@ def predict_with_model(mymodel):
     global predicts
 
 
+
     mymodel.eval()
-    testList = torch.from_numpy(testList)
-    # testList = testList.view(-1, 3, 224, 224)
-    testList = testList.view(-1, 3, IMAGE_SIZE, IMAGE_SIZE)
-    testList = testList.type(torch.FloatTensor) #一定要转换浮点数。
-    for sample in testList:
-        sample = sample.unsqueeze(dim=0)
+
+    for index , (pre, name) in enumerate(testLoader):
+        # pre = torch.from_numpy(pre)
+        pre = pre.view(-1, 3, IMAGE_SIZE, IMAGE_SIZE)
+        pre = pre.type(torch.FloatTensor) #一定要转换浮点数。
+
+        # pre = pre.unsqueeze(dim=0)
         if torch.cuda.is_available():
             mymodel.cuda()
-            sample = sample.cuda()
+            pre = pre.cuda()
         # torch.unsqueeze(sample,dim=1)
         # print("the one sample shape before train is: " + str(sample.shape))
-        predict = mymodel(sample, type=TEST)
+        # predict = mymodel(sample, type=TEST)
+        predict = mymodel(pre)
+        predict = torch.nn.Sigmoid(predict)
         print("this test prediction: "+ str(predict))
 
         # print("刚出炉的predict到底是什么shape：" + str(predict.shape))
 
 
         # 预测值转换为文字标签
-        # predict = predict.data.numpy()
         preLabelLabel = datapy.sigmoid2strings(predict)
         print("this test prediction after to string: "+ str(preLabelLabel))
 
-        predicts.append(preLabelLabel)
-        # print("test data prediction is: "+str(predict))
+        predicts.extend(preLabelLabel)
+        testPicNameList.extend(name)
 
 
     # print("some preLabels: "+str(predicts[:10]))
@@ -72,10 +81,6 @@ def predict_with_model(mymodel):
 def mkfileForSubmit():
     global testPicNameList
     testPicNameList = np.array(testPicNameList)
-    # result = []
-    # for i in range(len(testPicNameList)):
-        # oneItem = str(testPicNameList[i]) + ',' + str(predicts[i])
-        # result.append(oneItem)
     df = pd.DataFrame({"img_path":testPicNameList, "tags":predicts})
 
     # 列表变为字符串

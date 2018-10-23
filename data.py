@@ -19,6 +19,7 @@ testDatasaveddict = "/testdataSaved"
 xnpy = "/xSaved.npy"
 ynpy = "/ySaved.npy"
 testnpy = "/testDataSaved.npy"
+testNamenpy = "/testNameSaved.npy"
 bacth_size = 100
 NEED_RENEW_DATA = False  #是否要重头开始读取图片文件
 TRAIN = "train"
@@ -189,15 +190,16 @@ def loadTestPic():
         os.mkdir(rootdict + testDatasaveddict)
 
     np.save(rootdict + testDatasaveddict + testnpy, testImages )
+    np.save(rootdict + testDatasaveddict + testNamenpy, testPicList)
 
     return testImages, testPicList
 
 
 def loadTrainPic():
     imagePaths = checkCsv()
-    imagePaths = imagePaths[:TRAIN_LOAD_IMG_NUM]   # 控制载入的训练图片数量
+    # imagePaths = imagePaths[:TRAIN_LOAD_IMG_NUM]   # 控制载入的训练图片数量
     y = checkNpz()
-    y = y[:TRAIN_LOAD_IMG_NUM]                     # 控制载入的训练图片数量
+    # y = y[:TRAIN_LOAD_IMG_NUM]                     # 控制载入的训练图片数量
 
     imageDatas = np.zeros((len(imagePaths), IMAGE_SIZE, IMAGE_SIZE, 3), dtype=np.uint8)
 
@@ -305,6 +307,28 @@ class XzyData(data.Dataset):
 
     def __getitem__(self, item):
         return torch.from_numpy(self.x[item]), torch.from_numpy(self.y[item])
+
+
+
+class XzyTestData(data.Dataset):
+    def __init__(self):
+
+        if os.path.exists(rootdict+datasaveddict+testnpy) \
+                and not NEED_RENEW_DATA:
+            x = np.load(rootdict+datasaveddict+testnpy)
+            y = np.load(rootdict+datasaveddict+testNamenpy)
+        else:
+            x, y = loadTestPic()
+
+        self.x = x
+        self.y = y
+
+
+    def __len__(self):
+        return len(self.x)
+
+    def __getitem__(self, item):
+        return torch.from_numpy(self.x[item]), self.y[item]
 
 
 
