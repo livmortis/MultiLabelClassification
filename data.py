@@ -22,6 +22,7 @@ testnpy = "/testDataSaved.npy"
 testNamenpy = "/testNameSaved.npy"
 bacth_size = 100
 NEED_RENEW_DATA = False  #是否要重头开始读取图片文件
+NEED_RENEW_TEST_DATA = False  #是否要重头开始读取测试图片文件
 TRAIN = "train"
 EVAL = "eval"
 
@@ -313,10 +314,10 @@ class XzyData(data.Dataset):
 class XzyTestData(data.Dataset):
     def __init__(self):
 
-        if os.path.exists(rootdict+datasaveddict+testnpy) \
-                and not NEED_RENEW_DATA:
-            x = np.load(rootdict+datasaveddict+testnpy)
-            y = np.load(rootdict+datasaveddict+testNamenpy)
+        if os.path.exists(rootdict+testDatasaveddict+testnpy) \
+                and not NEED_RENEW_TEST_DATA:
+            x = np.load(rootdict+testDatasaveddict+testnpy)
+            y = np.load(rootdict+testDatasaveddict+testNamenpy)
         else:
             x, y = loadTestPic()
 
