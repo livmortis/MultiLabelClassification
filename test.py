@@ -57,7 +57,7 @@ def predict_with_model(mymodel):
             pre = F.sigmoid(pre)
             predictB.append(pre)
         predictB = np.array(predictB)
-        print("this test prediction: "+ str(predict))
+        print("this test prediction: "+ str(predictB))
 
         # print("刚出炉的predict到底是什么shape：" + str(predict.shape))
 
