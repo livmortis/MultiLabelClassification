@@ -76,7 +76,15 @@ def predict_with_model(mymodel):
 def mkfileForSubmit():
     global testPicNameList
     testPicNameList = np.array(testPicNameList)
-    df = pd.DataFrame({"img_path":testPicNameList, "tags":predicts})
+    df = pd.DataFrame({"img_path": testPicNameList, "tags": predicts})
+
+    print('check pred length: '+ str(len(predicts)))
+    print('check name length: '+ str(len(testPicNameList)))
+
+    print('check pred : '+ str(predicts[:10]))
+    print('check name : '+ str(testPicNameList[:10]))
+
+
 
     # 列表变为字符串
     for i in range(len(testPicNameList)):
