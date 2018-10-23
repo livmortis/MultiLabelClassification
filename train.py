@@ -248,8 +248,10 @@ if __name__ == '__main__' and not demo:
 
 
 
-    myPreTrainOptim = torch.optim.Adam([{ "params":inceptionV3Model.fc.parameters(), "lr": learning_rate}],
-                                       lr=learning_rate * 0.1,  weight_decay=0.0001)  #只训练最后一层
+    # myPreTrainOptim = torch.optim.Adam([{ "params":inceptionV3Model.fc.parameters(), "lr": learning_rate}],
+    #                                    lr=learning_rate * 0.1,  weight_decay=0.0001)  #训练所有层
+    myPreTrainOptim = torch.optim.Adam(inceptionV3Model.fc.parameters(),
+                                       lr=learning_rate ,  weight_decay=0.00001)  #只训练最后一层
     mySchedule = torch.optim.lr_scheduler.ReduceLROnPlateau(myPreTrainOptim, mode='max',
                                                             factor=0.1, patience=3, verbose=True)
 

@@ -123,8 +123,8 @@ def loadPretrainModel(type):
     inceptionV3 = tvModels.inception_v3(pretrained=True)
     # print('inceptionV3 is : '+ str(inceptionV3))
 
-    # for param in inceptionV3.parameters():        # 不锁定前几层，一起训练吧
-    #     param.requires_grad = False
+    for param in inceptionV3.parameters():
+        param.requires_grad = False
 
     # inceptionV3.fc = nn.Linear(2048, LABEL_NUMS)   #简单全连接层
     # inceptionV3.fc = nn.Sequential(                 #复杂全连接层
