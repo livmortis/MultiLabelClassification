@@ -246,7 +246,10 @@ if __name__ == '__main__' and not demo:
 
     # 参数：factor=0.5,每次lr缩小0.5。 patience=5，5次fmeasure不增长就改lr。 verbose=true，打印每个lr值。 mode=‘max’，判断lr是否增长。
 
-    myPreTrainOptim = torch.optim.Adam(inceptionV3Model.fc.parameters(), lr=learning_rate)  #只训练最后一层
+
+
+    myPreTrainOptim = torch.optim.Adam([{ "params":inceptionV3Model.fc.parameters(), "lr": learning_rate}],
+                                       lr=learning_rate * 0.1,  weight_decay=0.0001)  #只训练最后一层
     mySchedule = torch.optim.lr_scheduler.ReduceLROnPlateau(myPreTrainOptim, mode='max',
                                                             factor=0.1, patience=3, verbose=True)
 
