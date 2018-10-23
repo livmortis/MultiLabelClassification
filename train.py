@@ -118,6 +118,7 @@ def begin_pretrain():
 
         print("loss is : "+str(myLoss.data))
 
+    torch.save(inceptionV3Model, rootdict + modelsaveddict + modelpkl)  # 保存模型(每一个epoch保存一次)
 
 
 
