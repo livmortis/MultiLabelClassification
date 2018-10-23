@@ -57,7 +57,7 @@ def predict_with_model(mymodel):
         for pre in predict:
             pre = F.sigmoid(pre)
 
-            pre = np.array(pre)
+            pre = pre.detach().numpy()
             # 预测值转换为文字标签
             pre = datapy.sigmoid2strings(pre)
 
