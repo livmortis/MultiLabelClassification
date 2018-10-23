@@ -17,7 +17,7 @@ TEST = "test"
 IMAGE_SIZE = 299
 batch_size = 128  #需要8的倍数
 
-NEED_READ_ORIGION_PICTURE = True    #是否需要从头读取图片文件
+NEED_READ_ORIGION_PICTURE = False    #是否需要从头读取图片文件
 testList = []
 testPicNameList = []
 predicts = []
@@ -43,6 +43,7 @@ def load_model():
 def predict_with_model(mymodel):
     global testList
     global predicts
+    global testLoader
 
 
 
