@@ -66,8 +66,8 @@ def predict_with_model(mymodel):
         preLabelLabel = datapy.sigmoid2strings(predictB)
         print("this test prediction after to string: "+ str(preLabelLabel))
 
-        predicts.extend(preLabelLabel)
-        testPicNameList.extend(name)
+        predicts.append(preLabelLabel)
+        testPicNameList.append(name)
 
 
     # print("some preLabels: "+str(predicts[:10]))
