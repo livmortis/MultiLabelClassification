@@ -248,7 +248,7 @@ if __name__ == '__main__' and not demo:
 
     myPreTrainOptim = torch.optim.Adam(inceptionV3Model.fc.parameters(), lr=learning_rate)  #只训练最后一层
     mySchedule = torch.optim.lr_scheduler.ReduceLROnPlateau(myPreTrainOptim, mode='max',
-                                                            factor=0.5, patience=4, verbose=True)
+                                                            factor=0.1, patience=3, verbose=True)
 
     # begin_train_old()
     for i in range(epoch_size):
