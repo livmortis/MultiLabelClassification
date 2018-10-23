@@ -13,6 +13,7 @@ modelpkl = "/mySavedModel.pkl"
 testDatasaveddict = "/testdataSaved"
 testnpy = "/testDataSaved.npy"
 TEST = "test"
+IMAGE_SIZE = 299
 
 NEED_READ_ORIGION_PICTURE = True    #是否需要从头读取图片文件
 testList = []
@@ -40,7 +41,8 @@ def predict_with_model(mymodel):
 
     mymodel.eval()
     testList = torch.from_numpy(testList)
-    testList = testList.view(-1, 3, 224, 224)
+    # testList = testList.view(-1, 3, 224, 224)
+    testList = testList.view(-1, 3, IMAGE_SIZE, IMAGE_SIZE)
     testList = testList.type(torch.FloatTensor) #一定要转换浮点数。
     for sample in testList:
         sample = sample.unsqueeze(dim=0)

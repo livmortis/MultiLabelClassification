@@ -81,8 +81,7 @@ def fmeasureByTorch(y_true, y_pred):
 
 
 def begin_pretrain():
-    inceptionV3Model = model.loadPretrainModel()
-    myPreTrainOptim = torch.optim.Adam(inceptionV3Model.fc.parameters(), lr=learning_rate)  #只训练最后一层
+
 
     criterion = torch.nn.MultiLabelSoftMarginLoss()
     inceptionV3Model.train()     #模型的训练模式
@@ -161,12 +160,14 @@ def begin_train_new():
 
 def begin_eval():
 
+    criterion = torch.nn.MultiLabelSoftMarginLoss()
 
     # myModel = model.mtModel()   #移到外边，可在训练前选择是否读取已有模型。
     # criterion = torch.nn.MultiLabelSoftMarginLoss()
     # myOptim = torch.optim.Adam(myModel.parameters(), lr=0.001)
+    # inceptionV3Model = model.loadPretrainModel()
 
-    myModel.eval()     #模型的验证模式
+    inceptionV3Model.eval()     #模型的验证模式
     print("begin eval ... ")
 
     for index, (x, y) in enumerate(loaderEval, 0):
@@ -180,14 +181,21 @@ def begin_eval():
         if torch.cuda.is_available():
             x = x.cuda()
             y = y.cuda()
-            myModel.cuda()
+            inceptionV3Model.cuda()
 
         # myOptim.zero_grad()
-        predict = myModel(x, type=TEST)
+        # predict = myModel(x, type=TEST)
+        predict = inceptionV3Model(x)
         # myLoss = criterion(y, predict)
         # myLoss = criterion(predict, y)
         # myLoss.backward()
         # myOptim.step()
+
+
+        if isinstance(predict, tuple):
+            predict = predict[0]
+        myLoss = criterion(predict, y)
+        print("loss is : "+str(myLoss.data))
 
         #TODO 引入验证集评判标准
         # print("loss is : "+str(myLoss.data))
@@ -223,9 +231,8 @@ if __name__ == '__main__' and not demo:
     if modelExist and not NEED_RESTART_TRAIN:
         myModel = torch.load(rootdict+modelsaveddict+modelpkl)   #读取模型
     else:
-        myModel = model.mtModel()
-
-
+        # myModel = model.mtModel()
+        inceptionV3Model = model.loadPretrainModel("train")
 
     xzyDataTrain = datapy.XzyData(TRAIN)
     loaderTrain = torch.utils.data.DataLoader(xzyDataTrain, batch_size=batch_size, shuffle=True)
@@ -234,11 +241,13 @@ if __name__ == '__main__' and not demo:
 
 
     # 优化器
-    myOptim = torch.optim.Adam(myModel.parameters(), lr=learning_rate)
-    mySchedule = torch.optim.lr_scheduler.ReduceLROnPlateau(myOptim, mode='max',
-                                                            factor=0.5, patience=5, verbose=True)
+    # myOptim = torch.optim.Adam(myModel.parameters(), lr=learning_rate)
+
     # 参数：factor=0.5,每次lr缩小0.5。 patience=5，5次fmeasure不增长就改lr。 verbose=true，打印每个lr值。 mode=‘max’，判断lr是否增长。
 
+    myPreTrainOptim = torch.optim.Adam(inceptionV3Model.fc.parameters(), lr=learning_rate)  #只训练最后一层
+    mySchedule = torch.optim.lr_scheduler.ReduceLROnPlateau(myPreTrainOptim, mode='max',
+                                                            factor=0.5, patience=4, verbose=True)
 
     # begin_train_old()
     for i in range(epoch_size):

@@ -111,7 +111,7 @@ class mtModel(nn.Module):
 
 
 
-def loadPretrainModel():
+def loadPretrainModel(type):
     # res18 = tvModels.resnet18(pretrained=True)
     # res34 = tvModels.resnet34(pretrained=True)
     # res50 = tvModels.resnet50(pretrained=True)
@@ -126,7 +126,7 @@ def loadPretrainModel():
     for param in inceptionV3.parameters():
         param.requires_grad = False
 
-    inceptionV3.fc = nn.Linear(2048, LABEL_NUMS)   #简单全连接层
+    # inceptionV3.fc = nn.Linear(2048, LABEL_NUMS)   #简单全连接层
     # inceptionV3.fc = nn.Sequential(                 #复杂全连接层
     #     nn.Dropout(0.3),
     #     nn.Linear(2048, 2048),
@@ -134,6 +134,13 @@ def loadPretrainModel():
     #     nn.Dropout(0.3),
     #     nn.Linear(2048, LABEL_NUMS),
     # )
+    if type == "test" :
+        inceptionV3.fc = nn.Sequential(
+            nn.Linear(2048, LABEL_NUMS),  # 简单全连接层
+            nn.Sigmoid()
+        )
+    else:
+        inceptionV3.fc = nn.Linear(2048, LABEL_NUMS)  # 简单全连接层
 
     return inceptionV3
 
