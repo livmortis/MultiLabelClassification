@@ -17,17 +17,11 @@ TEST = "test"
 IMAGE_SIZE = 299
 batch_size = 128  #需要8的倍数
 
-NEED_READ_ORIGION_PICTURE = False    #是否需要从头读取图片文件
 testList = []
 testPicNameList = []
 predicts = []
 
-def load_data():
-    global testList
 
-    global testLoader
-
-    load_model()
 
 def load_model():
     if os.path.exists(rootdict + modelsaveddict):
@@ -58,18 +52,18 @@ def predict_with_model(mymodel):
         # print("the one sample shape before train is: " + str(sample.shape))
         # predict = mymodel(sample, type=TEST)
         predict = mymodel(pre)
-        predicts = []
+        predictB = []
         for pre in predict:
             pre = F.sigmoid(pre)
-            predicts.append(pre)
-        predicts = np.array(predicts)
+            predictB.append(pre)
+        predictB = np.array(predictB)
         print("this test prediction: "+ str(predict))
 
         # print("刚出炉的predict到底是什么shape：" + str(predict.shape))
 
 
         # 预测值转换为文字标签
-        preLabelLabel = datapy.sigmoid2strings(predict)
+        preLabelLabel = datapy.sigmoid2strings(predictB)
         print("this test prediction after to string: "+ str(preLabelLabel))
 
         predicts.extend(preLabelLabel)
@@ -97,9 +91,4 @@ if __name__ == "__main__":
     testData = datapy.XzyTestData()
     testLoader = data.DataLoader(testData, batch_size=batch_size, shuffle=False)
 
-    if os.path.exists(rootdict + testDatasaveddict + testnpy)\
-            and not NEED_READ_ORIGION_PICTURE:  #数据文件npy已经处理保存与本地
-        testList = np.load(rootdict + testDatasaveddict + testnpy)
-        load_model()
-    else:
-        load_data()
+    load_model()
