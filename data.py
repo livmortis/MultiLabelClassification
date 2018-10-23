@@ -124,7 +124,7 @@ def onehot2strings(onehots):
 def sigmoid2strings(sigmoidPre):
     prectLabels = []
     # sigmoidsLen = len(sigmoidPre)
-    sigmoidsLen = sigmoidPre.shape[1]   # 因为预测值是列向量
+    sigmoidsLen = sigmoidPre.shape[0]   # 因为预测值是列向量
     txtdic = label2dic()
     if(len(txtdic) != sigmoidsLen):
         return
