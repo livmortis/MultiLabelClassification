@@ -53,21 +53,21 @@ def predict_with_model(mymodel):
         # predict = mymodel(sample, type=TEST)
         predict = mymodel(pre)
         predictB = []
+
         for pre in predict:
             pre = F.sigmoid(pre)
+
+            pre = np.array(pre)
+            # 预测值转换为文字标签
+            pre = datapy.sigmoid2strings(pre)
+
             predictB.append(pre)
-        predictB = np.array(predictB)
+
+
         print("this test prediction: "+ str(predictB))
 
-        # print("刚出炉的predict到底是什么shape：" + str(predict.shape))
-
-
-        # 预测值转换为文字标签
-        preLabelLabel = datapy.sigmoid2strings(predictB)
-        print("this test prediction after to string: "+ str(preLabelLabel))
-
-        predicts.append(preLabelLabel)
-        testPicNameList.append(name)
+        predicts.extend(predictB)
+        testPicNameList.extend(name)
 
 
     # print("some preLabels: "+str(predicts[:10]))

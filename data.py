@@ -128,6 +128,7 @@ def sigmoid2strings(sigmoidPre):
     txtdic = label2dic()
     if(len(txtdic) != sigmoidsLen):
         return
+        print("something wrong !!!!!!!!!!!!!!!!")
     for i in range(sigmoidsLen):
         if sigmoidPre[0][i] > 0.1:
             prectLabels.append(txtdic[i])
