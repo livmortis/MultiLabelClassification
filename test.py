@@ -26,10 +26,6 @@ def load_data():
     global testList
 
     global testLoader
-    # testList, testPicNameList = datapy.loadTestPic()    #改为batch
-    testData = datapy.XzyTestData()
-    testLoader = data.DataLoader(testData, batch_size=batch_size, shuffle=False)
-
 
     load_model()
 
@@ -98,6 +94,9 @@ def mkfileForSubmit():
 
 if __name__ == "__main__":
     # global testList
+    testData = datapy.XzyTestData()
+    testLoader = data.DataLoader(testData, batch_size=batch_size, shuffle=False)
+
     if os.path.exists(rootdict + testDatasaveddict + testnpy)\
             and not NEED_READ_ORIGION_PICTURE:  #数据文件npy已经处理保存与本地
         testList = np.load(rootdict + testDatasaveddict + testnpy)
