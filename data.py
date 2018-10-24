@@ -12,8 +12,8 @@ from tqdm import tqdm
 # rootdict = "/Users/xzy/Documents/coder/ML/game/tinymindMultitag/MutitagData"
 rootdict = "../MutitagData"
 tainDataDict = "/train"
-# testDataDict = "/valid"
-testDataDict = "/test"     #决赛，更改了测试集
+testDataDict = "/valid"
+# testDataDict = "/test"     #决赛，更改了测试集
 datasaveddict = "/dataSaved"
 testDatasaveddict = "/testdataSaved"
 xnpy = "/xSaved.npy"

@@ -10,6 +10,7 @@ import torch.utils.data as data
 import os
 import numpy as np
 from torch.autograd.variable import Variable
+from torch.utils.checkpoint import checkpoint
 
 # epoch_size = 50
 epoch_size = 50
@@ -88,7 +89,6 @@ def begin_pretrain():
     for index, (x, y) in enumerate(loaderTrain, 0):
         print("batch num: "+str(index))
         x = x.view(-1, 3, IMAGE_SIZE, IMAGE_SIZE)    #即使使用Dataset，也需要调整NHWC为NCHW。
-        # x = x.view(-1,  IMAGE_SIZE, IMAGE_SIZE, 3)    # 试试NHWC
         x = x.type(torch.FloatTensor)   #即使使用Dataset，也需要调整类型为float。
         y = y.type(torch.FloatTensor)   #即使使用Dataset，也需要调整类型为float。
 
@@ -98,18 +98,15 @@ def begin_pretrain():
             inceptionV3Model.cuda()
 
         myPreTrainOptim.zero_grad()
-        # predict = myModel(x, type=None)
-        # predict = model.loadPretrainModel(x)     # 进行迁移学习————模型预训练
-        predict = inceptionV3Model(x)                 # 进行迁移学习————模型预训练
 
-        # myLoss = criterion(predict, y)
-        # print(str(predict))
+        predict = inceptionV3Model(x)                 # 进行迁移学习————模型预训练
+        # x = checkpoint(run_first_half, x)
+        # x = checkpoint(run_second_half, x)
+        # x = layers[-1](x)
+        # predict = x.sum
+
         if isinstance(predict, tuple):
             predict = predict[0]
-            # print("y's shape is "+str(y.shape))
-            # print("predict's shape is "+str(predict.shape))
-            #
-            # myLoss = sum((criterion(o, y) for o in predict))
 
         myLoss = criterion(predict, y)
 
@@ -209,7 +206,16 @@ def begin_eval():
 
 
 
-
+def run_first_half(*args):
+   x = args[0]
+   for layer in layers[:int(layerLen/2)]:
+       x = layer(x)
+   return x
+def run_second_half(*args):
+   x = args[0]
+   for layer in layers[int(layerLen/2):-1]:
+       x = layer(x)
+   return x
 
 
 
@@ -230,10 +236,14 @@ if __name__ == '__main__' and not demo:
     modelExist = os.path.exists(rootdict+modelsaveddict+modelpkl)
 
     if modelExist and not NEED_RESTART_TRAIN:
-        myModel = torch.load(rootdict+modelsaveddict+modelpkl)   #读取模型
+        # myModel = torch.load(rootdict+modelsaveddict+modelpkl)   #读取模型
+        inceptionV3Model = torch.load(rootdict+modelsaveddict+modelpkl)   #读取模型
     else:
         # myModel = model.mtModel()
         inceptionV3Model = model.loadPretrainModel("train")
+
+    layers = inceptionV3Model.modules()
+    layerLen = len(layers)
 
     xzyDataTrain = datapy.XzyData(TRAIN)
     loaderTrain = torch.utils.data.DataLoader(xzyDataTrain, batch_size=batch_size, shuffle=True)
@@ -248,10 +258,10 @@ if __name__ == '__main__' and not demo:
 
 
 
-    # myPreTrainOptim = torch.optim.Adam([{ "params":inceptionV3Model.fc.parameters(), "lr": learning_rate}],
-    #                                    lr=learning_rate * 0.1,  weight_decay=0.0001)  #训练所有层
-    myPreTrainOptim = torch.optim.Adam(inceptionV3Model.fc.parameters(),
-                                       lr=learning_rate ,  weight_decay=0.00001)  #只训练最后一层
+    myPreTrainOptim = torch.optim.Adam([{ "params":inceptionV3Model.fc.parameters(), "lr": learning_rate}],
+                                       lr=learning_rate * 0.1,  weight_decay=0.00001)  #训练所有层
+    # myPreTrainOptim = torch.optim.Adam(inceptionV3Model.fc.parameters(),
+    #                                    lr=learning_rate ,  weight_decay=0.00001)  #只训练最后一层
     mySchedule = torch.optim.lr_scheduler.ReduceLROnPlateau(myPreTrainOptim, mode='max',
                                                             factor=0.1, patience=3, verbose=True)
 
