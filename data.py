@@ -162,10 +162,10 @@ def checkCsv():
 #npz文件用来拿到label
 def checkNpz():
     npzFile = np.load(rootdict+"/tag_train.npz")
-    # print("npz's tag is: "+str(npzFile.files))
-    # print("npz file is: "+str(npzFile['tag_train']))
-    # print("npz file shape is: "+str(npzFile['tag_train'].shape))
-    # print("npz numpy : "+str(npzFile['tag_train'][:50]))
+    print("npz's tag is: "+str(npzFile.files))
+    print("npz file is: "+str(npzFile['tag_train']))
+    print("npz file shape is: "+str(npzFile['tag_train'].shape))
+    print("npz numpy : "+str(npzFile['tag_train'][:50]))
 
     return npzFile["tag_train"]
 
@@ -193,6 +193,7 @@ def loadTestPic():
 
     np.save(rootdict + testDatasaveddict + testnpy, testImages )
     np.save(rootdict + testDatasaveddict + testNamenpy, testPicList)
+
 
     return testImages, testPicList
 

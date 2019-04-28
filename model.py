@@ -78,7 +78,7 @@ class mtModel(nn.Module):
 
     def __init__(self):
         super(mtModel,self).__init__()
-        self.maxpool = nn.MaxPool2d([2, 2], stride=None, padding=0)
+        self.maxpool = nn.MaxPool2d([2, 2], stride=None, padding=0) #stride默认值等于kernelsize，所以这是2.
         self.relu = nn.ReLU()
                                                                     #输入(224,224)
         self.conv1 = nn.Conv2d(3, 16, (3, 3), stride=2, padding=1)  #输出(112,112)
